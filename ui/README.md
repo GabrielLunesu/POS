@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# POS System Frontend
+
+This is the frontend for the Point of Sale (POS) system, built with Next.js and Tailwind CSS.
+
+## Features
+
+- User authentication (login/register)
+- Protected routes
+- Dashboard with navigation
+- Products, categories, and sales management
+- Responsive design
+
+## Project Structure
+
+```
+src/
+├── app/                  # App router pages
+│   ├── dashboard/        # Dashboard page
+│   ├── login/            # Login page
+│   ├── register/         # Registration page
+│   ├── layout.js         # Root layout
+│   └── page.js           # Home page (redirects to login/dashboard)
+├── components/           # Reusable components
+│   ├── auth/             # Authentication components
+│   ├── layouts/          # Layout components
+│   └── ui/               # UI components
+├── context/              # React context providers
+│   └── AuthContext.js    # Authentication context
+└── services/             # API services
+    └── api.js            # API client and services
+```
 
 ## Getting Started
 
-First, run the development server:
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Authentication
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The frontend uses JWT-based authentication with the backend API. The authentication flow is as follows:
 
-## Learn More
+1. User logs in with username and password
+2. Backend validates credentials and returns a JWT token
+3. Frontend stores the token in localStorage
+4. Token is included in subsequent API requests
+5. Protected routes check for valid authentication
 
-To learn more about Next.js, take a look at the following resources:
+## API Communication
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The frontend communicates with the backend API using Axios. The API client is configured to:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Add authentication headers to requests
+- Handle common error responses
+- Redirect to login on authentication failures
 
-## Deploy on Vercel
+## Components
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Authentication Components
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `LoginForm`: Handles user login
+- `RegisterForm`: Handles user registration
+- `ProtectedRoute`: Protects routes from unauthenticated access
+
+### Layout Components
+
+- `AuthLayout`: Layout for authentication pages
+- `DashboardLayout`: Layout for dashboard pages
+- `Navbar`: Navigation bar for authenticated users
+
+### UI Components
+
+- `Button`: Reusable button component
+- `Input`: Form input component
+- `Card`: Card container component
+- `ToastProvider`: Toast notification provider
+
+## Context Providers
+
+- `AuthProvider`: Manages authentication state and provides auth-related functions
+
+## Development
+
+To add new features or modify existing ones:
+
+1. Create or modify components in the appropriate directories
+2. Update pages in the `app` directory
+3. Add new API services in the `services` directory as needed
+4. Test changes locally before deploying
