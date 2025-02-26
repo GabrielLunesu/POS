@@ -51,8 +51,28 @@ export const authService = {
    * @returns {Promise} - Response with user data and token
    */
   login: async (username, password) => {
-    const response = await api.post('/auth/login', { username, password });
-    return response.data;
+    try {
+      console.log('Sending login request with data:', { 
+        username, 
+        password: '********' // Don't log actual password
+      });
+      
+      const response = await api.post('/auth/login', { username, password });
+      console.log('Login response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API login error:', error);
+      
+      // Extract error message from response if available
+      if (error.response && error.response.data) {
+        const errorMessage = typeof error.response.data === 'string' 
+          ? error.response.data 
+          : error.response.data.message || 'Login failed';
+        throw new Error(errorMessage);
+      }
+      
+      throw error; // Re-throw for component to handle
+    }
   },
   
   /**

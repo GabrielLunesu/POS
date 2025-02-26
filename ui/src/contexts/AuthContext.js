@@ -46,15 +46,23 @@ export function AuthProvider({ children }) {
     try {
       const data = await authService.login(username, password);
       
+      // The backend returns a UserResponseDto with user info and token
+      const userData = {
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        role: data.role
+      };
+      
       // Store user data and token in localStorage
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('token', data.token);
       
-      setUser(data.user);
-      return data.user;
+      setUser(userData);
+      return userData;
     } catch (error) {
       console.error('Login error:', error);
-      throw new Error(error.response?.data?.message || 'Login failed');
+      throw error; // Re-throw for component to handle
     }
   };
   

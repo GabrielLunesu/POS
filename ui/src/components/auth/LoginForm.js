@@ -15,6 +15,7 @@ import Button from '@/components/ui/Button';
  */
 const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
   const { login } = useAuth();
   const router = useRouter();
   
@@ -33,23 +34,27 @@ const LoginForm = () => {
   // Handle form submission
   const onSubmit = async (data) => {
     setIsLoading(true);
+    setServerError('');
     
     try {
-      // Call login function from auth context
-      const result = await login(data.username, data.password);
+      console.log('Attempting login with username:', data.username);
       
-      if (result.success) {
-        // Show success message
-        toast.success('Login successful!');
-        // Redirect to dashboard
-        router.push('/dashboard');
-      } else {
-        // Show error message
-        toast.error(result.error || 'Login failed');
-      }
+      // Call login function from auth context
+      const user = await login(data.username, data.password);
+      
+      // If we get here, login was successful
+      console.log('Login successful:', user);
+      toast.success('Login successful!');
+      
+      // Redirect to dashboard
+      router.push('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('An unexpected error occurred');
+      
+      // Display the error message
+      const errorMessage = error.message || 'An unexpected error occurred';
+      setServerError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -59,6 +64,12 @@ const LoginForm = () => {
     <Card>
       <div className="p-6">
         <h1 className="text-2xl font-bold text-center mb-6">Login to Your Account</h1>
+        
+        {serverError && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {serverError}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
