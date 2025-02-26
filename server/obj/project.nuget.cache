@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "uhAwGNV+39c=",
+  "success": true,
+  "projectFilePath": "/Users/gabriellunesu/Documents/Github/POS/server/server.csproj",
+  "expectedPackageFiles": [
+    "/Users/gabriellunesu/.nuget/packages/microsoft.aspnetcore.openapi/9.0.0/microsoft.aspnetcore.openapi.9.0.0.nupkg.sha512",
+    "/Users/gabriellunesu/.nuget/packages/microsoft.openapi/1.6.17/microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
