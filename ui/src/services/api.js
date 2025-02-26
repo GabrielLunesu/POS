@@ -63,17 +63,29 @@ export const authService = {
    * @returns {Promise} - Response with registration status
    */
   register: async (username, email, password) => {
-    // Create the request body matching the UserRegisterDto format in the backend
-    const registerData = {
-      username,
-      email,
-      password,
-      confirmPassword: password, // Backend requires confirmPassword
-      role: "Employee" // Default role
-    };
-    
-    const response = await api.post('/auth/register', registerData);
-    return response.data;
+    try {
+      console.log('Registering user with data:', { 
+        username, 
+        email, 
+        password: '********', // Don't log actual password
+        confirmPassword: '********' 
+      });
+      
+      const registerData = {
+        username,
+        email,
+        password,
+        confirmPassword: password, // Backend requires confirmPassword to match password
+        role: "Employee" // Default role
+      };
+      
+      const response = await api.post('/auth/register', registerData);
+      console.log('Registration response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API registration error:', error);
+      throw error; // Re-throw for component to handle
+    }
   },
 };
 
@@ -105,8 +117,8 @@ export const productService = {
    * @param {Object} product - Product data
    * @returns {Promise} - Response with created product
    */
-  create: async (product) => {
-    const response = await api.post('/products', product);
+  create: async (productData) => {
+    const response = await api.post('/products', productData);
     return response.data;
   },
   
@@ -116,8 +128,8 @@ export const productService = {
    * @param {Object} product - Updated product data
    * @returns {Promise} - Response with updated product
    */
-  update: async (id, product) => {
-    const response = await api.put(`/products/${id}`, product);
+  update: async (id, productData) => {
+    const response = await api.put(`/products/${id}`, productData);
     return response.data;
   },
   
@@ -160,8 +172,8 @@ export const categoryService = {
    * @param {Object} category - Category data
    * @returns {Promise} - Response with created category
    */
-  create: async (category) => {
-    const response = await api.post('/categories', category);
+  create: async (categoryData) => {
+    const response = await api.post('/categories', categoryData);
     return response.data;
   },
   
@@ -171,8 +183,8 @@ export const categoryService = {
    * @param {Object} category - Updated category data
    * @returns {Promise} - Response with updated category
    */
-  update: async (id, category) => {
-    const response = await api.put(`/categories/${id}`, category);
+  update: async (id, categoryData) => {
+    const response = await api.put(`/categories/${id}`, categoryData);
     return response.data;
   },
   
@@ -215,8 +227,29 @@ export const saleService = {
    * @param {Object} sale - Sale data
    * @returns {Promise} - Response with created sale
    */
-  create: async (sale) => {
-    const response = await api.post('/sales', sale);
+  create: async (saleData) => {
+    const response = await api.post('/sales', saleData);
+    return response.data;
+  },
+  
+  /**
+   * Update existing sale
+   * @param {number} id - Sale ID
+   * @param {Object} sale - Updated sale data
+   * @returns {Promise} - Response with updated sale
+   */
+  update: async (id, saleData) => {
+    const response = await api.put(`/sales/${id}`, saleData);
+    return response.data;
+  },
+  
+  /**
+   * Delete sale
+   * @param {number} id - Sale ID
+   * @returns {Promise} - Response with deletion status
+   */
+  delete: async (id) => {
+    const response = await api.delete(`/sales/${id}`);
     return response.data;
   },
 };

@@ -70,7 +70,21 @@ export function AuthProvider({ children }) {
       return data;
     } catch (error) {
       console.error('Registration error:', error);
-      throw new Error(error.response?.data?.message || 'Registration failed');
+      
+      // Handle different types of errors
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        const errorMessage = error.response.data?.message || 
+                            (typeof error.response.data === 'string' ? error.response.data : 'Registration failed');
+        throw new Error(errorMessage);
+      } else if (error.request) {
+        // The request was made but no response was received
+        throw new Error('No response from server. Please try again later.');
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        throw new Error(error.message || 'Registration failed');
+      }
     }
   };
   

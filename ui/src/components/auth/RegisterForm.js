@@ -16,6 +16,7 @@ import Card from '@/components/ui/Card';
  */
 export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
   const { register: registerUser } = useAuth();
   const router = useRouter();
   
@@ -37,20 +38,28 @@ export default function RegisterForm() {
   
   const onSubmit = async (data) => {
     setIsLoading(true);
+    setServerError('');
     
     try {
+      console.log('Submitting registration data:', {
+        username: data.username,
+        email: data.email,
+        password: '********', // Don't log actual password
+        confirmPassword: '********'
+      });
+      
       const result = await registerUser(data.username, data.email, data.password);
+      console.log('Registration successful:', result);
       
       toast.success('Registration successful! Please log in.');
       router.push('/login');
     } catch (error) {
       console.error('Registration error:', error);
       
-      if (error.response && error.response.data) {
-        toast.error(error.response.data.message || 'Registration failed');
-      } else {
-        toast.error('An error occurred during registration');
-      }
+      // Display the error message
+      const errorMessage = error.message || 'An error occurred during registration';
+      setServerError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -60,6 +69,12 @@ export default function RegisterForm() {
     <Card>
       <div className="p-6">
         <h1 className="text-2xl font-bold text-center mb-6">Create an Account</h1>
+        
+        {serverError && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {serverError}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
