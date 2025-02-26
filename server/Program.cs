@@ -25,7 +25,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
                 .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value!)),
             ValidateIssuer = false,
-            ValidateAudience = false
+            ValidateAudience = false,
+            // Set the algorithm to match the one used in JwtTokenService
+            SignatureValidator = (token, parameters) =>
+            {
+                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var jwt = handler.ReadJwtToken(token);
+                
+                // Ensure the algorithm is HmacSha256
+                if (jwt.SignatureAlgorithm != SecurityAlgorithms.HmacSha256Signature)
+                {
+                    throw new SecurityTokenInvalidSignatureException("Invalid token signature algorithm");
+                }
+                
+                return jwt;
+            }
         };
     });
 
