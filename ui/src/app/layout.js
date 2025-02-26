@@ -2,7 +2,7 @@
 
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { AuthProvider } from '@/context/AuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import ToastProvider from '@/components/ui/ToastProvider';
 
 // Initialize Inter font

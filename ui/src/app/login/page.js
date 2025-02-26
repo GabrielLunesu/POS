@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import AuthLayout from '@/components/layouts/AuthLayout';
 import LoginForm from '@/components/auth/LoginForm';
 
@@ -16,7 +16,7 @@ export default function LoginPage() {
   
   // Redirect to dashboard if already authenticated
   useEffect(() => {
-    if (!loading && isAuthenticated()) {
+    if (!loading && isAuthenticated) {
       router.push('/dashboard');
     }
   }, [isAuthenticated, loading, router]);

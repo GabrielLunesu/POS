@@ -63,7 +63,16 @@ export const authService = {
    * @returns {Promise} - Response with registration status
    */
   register: async (username, email, password) => {
-    const response = await api.post('/auth/register', { username, email, password });
+    // Create the request body matching the UserRegisterDto format in the backend
+    const registerData = {
+      username,
+      email,
+      password,
+      confirmPassword: password, // Backend requires confirmPassword
+      role: "Employee" // Default role
+    };
+    
+    const response = await api.post('/auth/register', registerData);
     return response.data;
   },
 };

@@ -1,32 +1,35 @@
 'use client';
 
+import HeroSection from '@/components/home/HeroSection';
+import FeaturesSection from '@/components/home/FeaturesSection';
+import Footer from '@/components/home/Footer';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import Image from "next/image";
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
- * Home page component
- * Redirects to dashboard if authenticated, otherwise to login page
+ * Homepage component
+ * Displays information about the POS system and provides links to login/register
+ * If user is already authenticated, redirects to dashboard
  */
-export default function HomePage() {
-  const { isAuthenticated, loading } = useAuth();
+export default function Home() {
   const router = useRouter();
-  
+  const { isAuthenticated, loading } = useAuth();
+
+  // Redirect to dashboard if already authenticated
   useEffect(() => {
-    if (!loading) {
-      if (isAuthenticated()) {
-        router.push('/dashboard');
-      } else {
-        router.push('/login');
-      }
+    if (isAuthenticated && !loading) {
+      router.push('/dashboard');
     }
   }, [isAuthenticated, loading, router]);
-  
-  // Show loading indicator while checking authentication
+
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    <div className="min-h-screen flex flex-col">
+      <main className="flex-grow">
+        <HeroSection />
+        <FeaturesSection />
+      </main>
+      <Footer />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Protected route component
@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     if (loading) return;
     
     // Redirect to login if not authenticated
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       router.push('/login');
       return;
     }
@@ -37,7 +37,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }, [isAuthenticated, hasRole, loading, router, allowedRoles]);
 
   // Show nothing while loading or redirecting
-  if (loading || !isAuthenticated()) {
+  if (loading || !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>

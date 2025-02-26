@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -56,50 +56,61 @@ const LoginForm = () => {
   };
 
   return (
-    <Card 
-      className="w-full max-w-md mx-auto"
-      title="Login to POS System"
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <Input
-          id="username"
-          label="Username"
-          placeholder="Enter your username"
-          required
-          error={errors.username?.message}
-          disabled={isLoading}
-          {...register('username', { 
-            required: 'Username is required' 
-          })}
-        />
+    <Card>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold text-center mb-6">Login to Your Account</h1>
         
-        <Input
-          id="password"
-          type="password"
-          label="Password"
-          placeholder="Enter your password"
-          required
-          error={errors.password?.message}
-          disabled={isLoading}
-          {...register('password', { 
-            required: 'Password is required',
-            minLength: {
-              value: 6,
-              message: 'Password must be at least 6 characters'
-            }
-          })}
-        />
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-4">
+            {/* Username field */}
+            <div>
+              <Input
+                label="Username"
+                {...register('username', { 
+                  required: 'Username is required' 
+                })}
+                error={errors.username?.message}
+              />
+            </div>
+            
+            {/* Password field */}
+            <div>
+              <Input
+                type="password"
+                label="Password"
+                {...register('password', { 
+                  required: 'Password is required',
+                  minLength: {
+                    value: 6,
+                    message: 'Password must be at least 6 characters'
+                  }
+                })}
+                error={errors.password?.message}
+              />
+            </div>
+            
+            {/* Submit button */}
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Logging in...' : 'Login'}
+            </Button>
+          </div>
+        </form>
         
-        <div className="pt-2">
-          <Button
-            type="submit"
-            fullWidth
-            disabled={isLoading}
-          >
-            {isLoading ? 'Logging in...' : 'Login'}
-          </Button>
+        {/* Registration link */}
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{' '}
+            <a href="/register" className="text-blue-600 hover:underline">
+              Register here
+            </a>
+          </p>
         </div>
-      </form>
+      </div>
     </Card>
   );
 };
