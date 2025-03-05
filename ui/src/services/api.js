@@ -12,20 +12,70 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
+    
+    // Enhanced token debugging
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      console.log(`Adding auth token to ${config.url}`);
+      // Log a masked version of the token for debugging (first 10 chars + last 4)
+      const tokenStart = token.substring(0, 10);
+      const tokenEnd = token.length > 14 ? token.substring(token.length - 4) : '';
+      console.log(`Token format: ${tokenStart}...${tokenEnd} (length: ${token.length})`);
+      
+      // Check if token is properly formatted
+      if (!token.startsWith('ey')) {
+        console.warn('WARNING: Token does not appear to be a valid JWT (should start with "ey")');
+      }
+      
+      // Ensure Authorization header is properly set
+      config.headers['Authorization'] = `Bearer ${token}`;
+      console.log('Authorization header set:', `Bearer ${tokenStart}...`);
+    } else {
+      console.log(`No auth token available for request to ${config.url}`);
+      // Check if there's any auth header already set
+      if (config.headers.Authorization) {
+        console.log('Existing Authorization header:', config.headers.Authorization);
+      }
     }
+    
+    // Log all headers being sent (for debugging)
+    console.log('Request headers:', JSON.stringify(config.headers));
+    
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('Request interceptor error:', error);
+    return Promise.reject(error);
+  }
 );
 
 // Add a response interceptor to handle common errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`Response from ${response.config.url}:`, response.status);
+    return response;
+  },
   (error) => {
+    console.error('API Error:', error);
+    
+    // Enhanced error logging
+    if (error.response) {
+      console.error('Response error data:', error.response.data);
+      console.error('Response error status:', error.response.status);
+      console.error('Response error headers:', error.response.headers);
+      
+      // Check if the request had an Authorization header
+      const authHeader = error.config.headers['Authorization'];
+      if (authHeader) {
+        console.log('Request had Authorization header:', authHeader.substring(0, 15) + '...');
+      } else {
+        console.warn('Request did NOT have Authorization header!');
+      }
+    }
+    
     // Handle unauthorized errors (401)
     if (error.response && error.response.status === 401) {
+      console.error('Unauthorized access (401). Clearing auth data and redirecting to login.');
+      
       // Clear local storage
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -39,6 +89,35 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/**
+ * Test backend connection
+ * @returns {Promise} - Response with connection status
+ */
+export const testBackendConnection = async () => {
+  try {
+    console.log('Testing backend connection...');
+    // Try to access a public endpoint that doesn't require authentication
+    const response = await api.get('/health', {
+      timeout: 5000 // 5 second timeout
+    });
+    console.log('Backend connection test result:', response.status, response.data);
+    return {
+      success: true,
+      status: response.status,
+      data: response.data
+    };
+  } catch (error) {
+    console.error('Backend connection test failed:', error);
+    return {
+      success: false,
+      error: error.message,
+      hasResponse: !!error.response,
+      status: error.response?.status,
+      data: error.response?.data
+    };
+  }
+};
 
 /**
  * Authentication API service
@@ -119,6 +198,16 @@ export const productService = {
    */
   getAll: async () => {
     const response = await api.get('/products');
+    return response.data;
+  },
+  
+  /**
+   * Get products by category ID
+   * @param {number} categoryId - Category ID
+   * @returns {Promise} - Response with products data
+   */
+  getByCategory: async (categoryId) => {
+    const response = await api.get(`/products/category/${categoryId}`);
     return response.data;
   },
   

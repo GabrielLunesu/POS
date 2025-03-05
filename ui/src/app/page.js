@@ -16,10 +16,10 @@ export default function Home() {
   const router = useRouter();
   const { isAuthenticated, loading } = useAuth();
 
-  // Redirect to dashboard if already authenticated
+  // Redirect to POS if already authenticated
   useEffect(() => {
     if (isAuthenticated && !loading) {
-      router.push('/dashboard');
+      router.push('/pos');
     }
   }, [isAuthenticated, loading, router]);
 

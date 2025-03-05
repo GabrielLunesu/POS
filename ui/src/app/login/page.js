@@ -14,10 +14,10 @@ export default function LoginPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
   
-  // Redirect to dashboard if already authenticated
+  // Redirect to POS if already authenticated
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      router.push('/dashboard');
+      router.push('/pos');
     }
   }, [isAuthenticated, loading, router]);
   

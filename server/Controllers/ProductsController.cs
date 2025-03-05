@@ -80,6 +80,34 @@ namespace server.Controllers
             return Ok(productDto);
         }
 
+        // GET: api/Products/Category/5
+        [HttpGet("category/{categoryId}")]
+        public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetProductsByCategory(int categoryId)
+        {
+            var products = await _context.Products
+                .Include(p => p.Category)
+                .Where(p => p.IsActive && p.CategoryId == categoryId)
+                .Select(p => new ProductResponseDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    Quantity = p.Quantity,
+                    Barcode = p.Barcode,
+                    CategoryId = p.CategoryId,
+                    CategoryName = p.Category != null ? p.Category.Name : null,
+                    ImageUrl = p.ImageUrl,
+                    Cost = p.Cost,
+                    IsActive = p.IsActive,
+                    CreatedAt = p.CreatedAt,
+                    UpdatedAt = p.UpdatedAt
+                })
+                .ToListAsync();
+
+            return Ok(products);
+        }
+
         // POST: api/Products
         [HttpPost]
         [Authorize(Roles = "Admin,Manager")]

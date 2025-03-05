@@ -16,32 +16,45 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configure JWT authentication
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
+            .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value!)),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        // Don't use custom SignatureValidator as it can cause issues
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+    
+    // Add event handlers for debugging token validation issues
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
         {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
-                .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value!)),
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            // Set the algorithm to match the one used in JwtTokenService
-            SignatureValidator = (token, parameters) =>
-            {
-                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                var jwt = handler.ReadJwtToken(token);
-                
-                // Ensure the algorithm is HmacSha256
-                if (jwt.SignatureAlgorithm != SecurityAlgorithms.HmacSha256Signature)
-                {
-                    throw new SecurityTokenInvalidSignatureException("Invalid token signature algorithm");
-                }
-                
-                return jwt;
-            }
-        };
-    });
+            Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            Console.WriteLine("Token successfully validated");
+            return Task.CompletedTask;
+        },
+        OnMessageReceived = context =>
+        {
+            Console.WriteLine($"Token received: {context.Token?.Substring(0, Math.Min(10, context.Token?.Length ?? 0))}...");
+            return Task.CompletedTask;
+        }
+    };
+});
 
 // Register JwtTokenService
 builder.Services.AddScoped<JwtTokenService>();

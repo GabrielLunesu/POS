@@ -18,11 +18,28 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const initializeAuth = () => {
       try {
+        console.log('Initializing auth state from localStorage...');
+        
         const storedUser = localStorage.getItem('user');
         const storedToken = localStorage.getItem('token');
         
+        console.log('Auth initialization:', {
+          hasStoredUser: !!storedUser,
+          hasStoredToken: !!storedToken,
+          tokenLength: storedToken ? storedToken.length : 0,
+          tokenPreview: storedToken ? `${storedToken.substring(0, 10)}...` : 'none'
+        });
+        
         if (storedUser && storedToken) {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          console.log('Setting user from localStorage:', {
+            id: parsedUser.id,
+            username: parsedUser.username,
+            role: parsedUser.role
+          });
+          setUser(parsedUser);
+        } else {
+          console.log('No valid auth data found in localStorage');
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -44,7 +61,26 @@ export function AuthProvider({ children }) {
    */
   const login = async (username, password) => {
     try {
+      console.log('Attempting login with username:', username);
+      
       const data = await authService.login(username, password);
+      console.log('Login response data:', data);
+      
+      // Validate the response contains the expected data
+      if (!data || !data.token) {
+        console.error('Invalid login response - missing token:', data);
+        throw new Error('Invalid login response from server');
+      }
+      
+      // Check token format
+      if (typeof data.token !== 'string') {
+        console.error('Token is not a string:', typeof data.token);
+        throw new Error('Invalid token format received from server');
+      }
+      
+      // Log token format (partially masked)
+      const tokenPreview = `${data.token.substring(0, 10)}...${data.token.substring(data.token.length - 4)}`;
+      console.log(`Token received: ${tokenPreview} (length: ${data.token.length})`);
       
       // The backend returns a UserResponseDto with user info and token
       const userData = {
@@ -54,9 +90,26 @@ export function AuthProvider({ children }) {
         role: data.role
       };
       
+      console.log('Storing user data and token in localStorage');
+      
       // Store user data and token in localStorage
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('token', data.token);
+      
+      // Verify token was stored correctly
+      const storedToken = localStorage.getItem('token');
+      if (!storedToken) {
+        console.error('Failed to store token in localStorage');
+        throw new Error('Failed to store authentication data');
+      }
+      
+      if (storedToken !== data.token) {
+        console.error('Stored token does not match original token');
+        throw new Error('Authentication data storage error');
+      }
+      
+      console.log('Stored token verification:', 
+        storedToken ? `Success (length: ${storedToken.length})` : 'Failed to store token');
       
       setUser(userData);
       return userData;

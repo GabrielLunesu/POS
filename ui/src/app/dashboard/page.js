@@ -46,6 +46,16 @@ export default function DashboardPage() {
                 You are logged in as: {user?.role || 'User'}
               </p>
               
+              {/* POS Quick Access Button */}
+              <div className="mt-4">
+                <a 
+                  href="/pos" 
+                  className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-center"
+                >
+                  Open POS Cashier System
+                </a>
+              </div>
+              
               <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {/* Sample dashboard cards */}
                 <div className="bg-blue-50 overflow-hidden shadow rounded-lg">

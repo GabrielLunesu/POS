@@ -46,8 +46,8 @@ const LoginForm = () => {
       console.log('Login successful:', user);
       toast.success('Login successful!');
       
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Redirect to POS
+      router.push('/pos');
     } catch (error) {
       console.error('Login error:', error);
       
