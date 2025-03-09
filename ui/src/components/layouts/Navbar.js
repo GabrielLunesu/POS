@@ -96,6 +96,39 @@ export default function Navbar() {
               >
                 POS
               </Link>
+              
+              <Link 
+                href="/debug" 
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  isActive('/debug') 
+                    ? 'border-blue-500 text-gray-900' 
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
+              >
+                Debug
+              </Link>
+              
+              <Link 
+                href="/test-modal" 
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  isActive('/test-modal') 
+                    ? 'border-blue-500 text-gray-900' 
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
+              >
+                Test Modal
+              </Link>
+              
+              <Link 
+                href="/users" 
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  isActive('/users') 
+                    ? 'border-blue-500 text-gray-900' 
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
+              >
+                Users
+              </Link>
             </div>
           </div>
           
@@ -243,6 +276,39 @@ export default function Navbar() {
             }`}
           >
             POS
+          </Link>
+          
+          <Link
+            href="/debug"
+            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+              isActive('/debug')
+                ? 'border-blue-500 text-blue-700 bg-blue-50'
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+            }`}
+          >
+            Debug
+          </Link>
+          
+          <Link
+            href="/test-modal"
+            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+              isActive('/test-modal')
+                ? 'border-blue-500 text-blue-700 bg-blue-50'
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+            }`}
+          >
+            Test Modal
+          </Link>
+          
+          <Link
+            href="/users"
+            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+              isActive('/users')
+                ? 'border-blue-500 text-blue-700 bg-blue-50'
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+            }`}
+          >
+            Users
           </Link>
         </div>
         

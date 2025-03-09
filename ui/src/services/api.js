@@ -333,7 +333,7 @@ export const saleService = {
   
   /**
    * Create new sale
-   * @param {Object} sale - Sale data
+   * @param {Object} saleData - Sale data
    * @returns {Promise} - Response with created sale
    */
   create: async (saleData) => {
@@ -342,25 +342,69 @@ export const saleService = {
   },
   
   /**
-   * Update existing sale
+   * Void a sale
    * @param {number} id - Sale ID
-   * @param {Object} sale - Updated sale data
-   * @returns {Promise} - Response with updated sale
+   * @returns {Promise} - Response with void status
    */
-  update: async (id, saleData) => {
-    const response = await api.put(`/sales/${id}`, saleData);
+  voidSale: async (id) => {
+    const response = await api.put(`/sales/${id}/void`);
+    return response.data;
+  }
+};
+
+/**
+ * User management API service
+ */
+export const userService = {
+  /**
+   * Get all users
+   * @returns {Promise} - Response with users data
+   */
+  getAll: async () => {
+    const response = await api.get('/users');
     return response.data;
   },
   
   /**
-   * Delete sale
-   * @param {number} id - Sale ID
+   * Get user by ID
+   * @param {number} id - User ID
+   * @returns {Promise} - Response with user data
+   */
+  getById: async (id) => {
+    const response = await api.get(`/users/${id}`);
+    return response.data;
+  },
+  
+  /**
+   * Create new user
+   * @param {Object} userData - User data
+   * @returns {Promise} - Response with created user
+   */
+  create: async (userData) => {
+    const response = await api.post('/users', userData);
+    return response.data;
+  },
+  
+  /**
+   * Update existing user
+   * @param {number} id - User ID
+   * @param {Object} userData - Updated user data
+   * @returns {Promise} - Response with updated user
+   */
+  update: async (id, userData) => {
+    const response = await api.put(`/users/${id}`, userData);
+    return response.data;
+  },
+  
+  /**
+   * Delete user
+   * @param {number} id - User ID
    * @returns {Promise} - Response with deletion status
    */
   delete: async (id) => {
-    const response = await api.delete(`/sales/${id}`);
+    const response = await api.delete(`/users/${id}`);
     return response.data;
-  },
+  }
 };
 
 export default api; 

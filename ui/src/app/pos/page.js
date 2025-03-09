@@ -8,6 +8,7 @@ import POSLayout from '@/components/layouts/POSLayout';
 import CategoryList from '@/components/pos/CategoryList';
 import ProductGrid from '@/components/pos/ProductGrid';
 import Cart from '@/components/pos/Cart';
+import Receipt from '@/components/pos/Receipt';
 import { categoryService, productService, saleService, testBackendConnection } from '@/services/api';
 import toast from 'react-hot-toast';
 
@@ -29,6 +30,10 @@ export default function POSPage() {
   const [cartItems, setCartItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [connectionError, setConnectionError] = useState(null);
+  
+  // State for receipt
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [currentSale, setCurrentSale] = useState(null);
   
   // Test backend connection
   const checkBackendConnection = async () => {
@@ -199,30 +204,36 @@ export default function POSPage() {
         items: cartItems.map(item => ({
           productId: item.id,
           quantity: item.quantity,
-          price: item.price
+          discount: 0
         })),
         paymentMethod: paymentMethod,
-        total: cartItems.reduce((total, item) => total + (item.price * item.quantity), 0) * 1.1, // Including tax
-        tax: cartItems.reduce((total, item) => total + (item.price * item.quantity), 0) * 0.1,
-        status: 'Completed'
+        discount: 0,
+        notes: `Sale completed via POS by ${user?.username || 'staff'}`
       };
       
       // Submit sale to API
       const response = await saleService.create(saleData);
+      
+      // Show receipt
+      setCurrentSale(response);
+      setShowReceipt(true);
       
       // Clear cart after successful checkout
       setCartItems([]);
       
       toast.success('Order completed successfully!');
       setIsLoading(false);
-      
-      // Optionally navigate to receipt page
-      // router.push(`/sales/${response.id}`);
     } catch (error) {
       console.error('Checkout error:', error);
       toast.error('Failed to process order');
       setIsLoading(false);
     }
+  };
+  
+  // Close receipt modal
+  const handleCloseReceipt = () => {
+    setShowReceipt(false);
+    setCurrentSale(null);
   };
   
   return (
@@ -282,6 +293,11 @@ export default function POSPage() {
                 />
               </div>
             </div>
+          )}
+          
+          {/* Receipt Modal */}
+          {showReceipt && currentSale && (
+            <Receipt sale={currentSale} onClose={handleCloseReceipt} />
           )}
         </div>
       </POSLayout>

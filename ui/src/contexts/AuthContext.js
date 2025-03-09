@@ -165,6 +165,14 @@ export function AuthProvider({ children }) {
    * @returns {boolean} - Role check result
    */
   const hasRole = (requiredRoles) => {
+    // Debug logging
+    console.log('hasRole check:', { 
+      user: user?.username,
+      userRole: user?.role, 
+      requiredRoles,
+      hasUser: !!user
+    });
+    
     if (!user) return false;
     
     // If no specific role is required, any authenticated user is allowed
@@ -174,7 +182,9 @@ export function AuthProvider({ children }) {
     const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
     
     // Check if user has any of the required roles
-    return roles.includes(user.role);
+    const result = roles.includes(user.role);
+    console.log(`Role check result: ${result ? 'Allowed' : 'Denied'}`);
+    return result;
   };
   
   // Compute isAuthenticated value

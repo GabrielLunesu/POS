@@ -32,6 +32,27 @@ namespace server.DTOs
         public string Role { get; set; } = "Employee";
     }
     
+    public class UserUpdateDto
+    {
+        [Required]
+        [StringLength(50, MinimumLength = 3)]
+        public string Username { get; set; } = string.Empty;
+        
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+        
+        // Password is optional for updates
+        [StringLength(100, MinimumLength = 6)]
+        public string? Password { get; set; }
+        
+        [Required]
+        public string Role { get; set; } = string.Empty;
+        
+        [Required]
+        public bool IsActive { get; set; } = true;
+    }
+    
     public class UserResponseDto
     {
         public int Id { get; set; }
