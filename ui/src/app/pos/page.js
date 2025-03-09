@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import POSLayout from '@/components/layouts/POSLayout';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
 import CategoryList from '@/components/pos/CategoryList';
 import ProductGrid from '@/components/pos/ProductGrid';
 import Cart from '@/components/pos/Cart';
@@ -238,7 +238,7 @@ export default function POSPage() {
   
   return (
     <ProtectedRoute>
-      <POSLayout>
+      <DashboardLayout>
         <div className="p-4">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-64">
@@ -266,8 +266,8 @@ export default function POSPage() {
             <div className="grid grid-cols-12 gap-4">
               {/* Categories sidebar */}
               <div className="col-span-12 md:col-span-3 lg:col-span-2">
-                <CategoryList 
-                  categories={categories} 
+                <CategoryList
+                  categories={categories}
                   activeCategory={activeCategory}
                   onCategorySelect={handleCategorySelect}
                 />
@@ -275,7 +275,7 @@ export default function POSPage() {
               
               {/* Products grid */}
               <div className="col-span-12 md:col-span-6 lg:col-span-7">
-                <ProductGrid 
+                <ProductGrid
                   products={filteredProducts}
                   category={activeCategory}
                   onAddToCart={handleAddToCart}
@@ -284,7 +284,7 @@ export default function POSPage() {
               
               {/* Cart */}
               <div className="col-span-12 md:col-span-3 lg:col-span-3">
-                <Cart 
+                <Cart
                   cartItems={cartItems}
                   onUpdateQuantity={handleUpdateQuantity}
                   onRemoveItem={handleRemoveItem}
@@ -300,7 +300,7 @@ export default function POSPage() {
             <Receipt sale={currentSale} onClose={handleCloseReceipt} />
           )}
         </div>
-      </POSLayout>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 } 

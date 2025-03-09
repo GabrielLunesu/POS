@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { saleService } from '@/services/api';
 import Receipt from '@/components/pos/Receipt';
 import toast from 'react-hot-toast';
@@ -103,79 +104,81 @@ export default function SalesPage() {
   
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Sales History</h1>
-        </div>
-        
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <DashboardLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">Sales History</h1>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 border">Receipt #</th>
-                  <th className="px-4 py-2 border">Date</th>
-                  <th className="px-4 py-2 border">Items</th>
-                  <th className="px-4 py-2 border">Total</th>
-                  <th className="px-4 py-2 border">Payment</th>
-                  <th className="px-4 py-2 border">Status</th>
-                  <th className="px-4 py-2 border">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sales.map(sale => (
-                  <tr key={sale.id} className={sale.status === 'Voided' ? 'bg-red-50' : ''}>
-                    <td className="px-4 py-2 border">{sale.id}</td>
-                    <td className="px-4 py-2 border">{formatDate(sale.saleDate)}</td>
-                    <td className="px-4 py-2 border text-center">{sale.items.length}</td>
-                    <td className="px-4 py-2 border">${sale.grandTotal.toFixed(2)}</td>
-                    <td className="px-4 py-2 border">{sale.paymentMethod}</td>
-                    <td className="px-4 py-2 border">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        sale.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                        sale.status === 'Voided' ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {sale.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 border">
-                      <button
-                        onClick={() => handleViewReceipt(sale.id)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded mr-2"
-                      >
-                        View
-                      </button>
-                      {sale.status === 'Completed' && hasRole(['Admin', 'Manager']) && (
-                        <button
-                          onClick={() => handleVoidSale(sale.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
-                        >
-                          Void
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {sales.length === 0 && (
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border border-gray-200">
+                <thead>
                   <tr>
-                    <td colSpan="7" className="px-4 py-2 text-center">No sales found</td>
+                    <th className="px-4 py-2 border">Receipt #</th>
+                    <th className="px-4 py-2 border">Date</th>
+                    <th className="px-4 py-2 border">Items</th>
+                    <th className="px-4 py-2 border">Total</th>
+                    <th className="px-4 py-2 border">Payment</th>
+                    <th className="px-4 py-2 border">Status</th>
+                    <th className="px-4 py-2 border">Actions</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-        
-        {/* Receipt Modal */}
-        {showReceipt && currentSale && (
-          <Receipt sale={currentSale} onClose={handleCloseReceipt} />
-        )}
-      </div>
+                </thead>
+                <tbody>
+                  {sales.map(sale => (
+                    <tr key={sale.id} className={sale.status === 'Voided' ? 'bg-red-50' : ''}>
+                      <td className="px-4 py-2 border">{sale.id}</td>
+                      <td className="px-4 py-2 border">{formatDate(sale.saleDate)}</td>
+                      <td className="px-4 py-2 border text-center">{sale.items.length}</td>
+                      <td className="px-4 py-2 border">${sale.grandTotal.toFixed(2)}</td>
+                      <td className="px-4 py-2 border">{sale.paymentMethod}</td>
+                      <td className="px-4 py-2 border">
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          sale.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                          sale.status === 'Voided' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {sale.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 border">
+                        <button
+                          onClick={() => handleViewReceipt(sale.id)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded mr-2"
+                        >
+                          View
+                        </button>
+                        {sale.status === 'Completed' && hasRole(['Admin', 'Manager']) && (
+                          <button
+                            onClick={() => handleVoidSale(sale.id)}
+                            className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
+                          >
+                            Void
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {sales.length === 0 && (
+                    <tr>
+                      <td colSpan="7" className="px-4 py-2 text-center">No sales found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+          
+          {/* Receipt Modal */}
+          {showReceipt && currentSale && (
+            <Receipt sale={currentSale} onClose={handleCloseReceipt} />
+          )}
+        </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 } 

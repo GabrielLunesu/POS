@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { categoryService } from '@/services/api';
 import toast from 'react-hot-toast';
 
 export default function CategoriesPage() {
   const router = useRouter();
-  const { isAuthenticated, hasRole } = useAuth();
+  const { isAuthenticated, hasRole, user } = useAuth();
   
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -147,168 +148,185 @@ export default function CategoriesPage() {
   
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-white">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Category Management</h1>
-            {hasRole(['Admin', 'Manager']) && (
-              <button
-                onClick={handleAddCategory}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-              >
-                Add New Category
-              </button>
-            )}
-          </div>
-          
-          {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <DashboardLayout>
+        <div className="min-h-screen bg-white">
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Category Management</h1>
+              {hasRole(['Admin', 'Manager']) ? (
+                <button
+                  onClick={() => {
+                    console.log('Add Category button clicked');
+                    handleAddCategory();
+                  }}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                >
+                  Add New Category
+                </button>
+              ) : (
+                <p className="text-sm text-gray-500">Admin or Manager role required to add categories</p>
+              )}
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border border-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2 border">Name</th>
-                    <th className="px-4 py-2 border">Description</th>
-                    <th className="px-4 py-2 border">Products</th>
-                    <th className="px-4 py-2 border">Created</th>
-                    {hasRole(['Admin', 'Manager']) && (
-                      <th className="px-4 py-2 border">Actions</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {categories.map(category => (
-                    <tr key={category.id}>
-                      <td className="px-4 py-2 border">{category.name}</td>
-                      <td className="px-4 py-2 border">{category.description}</td>
-                      <td className="px-4 py-2 border text-center">{category.productCount}</td>
-                      <td className="px-4 py-2 border">{new Date(category.createdAt).toLocaleDateString()}</td>
+            
+            {/* Debug info */}
+            <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+              <p>Modal state: {showAddModal ? 'Open' : 'Closed'}</p>
+              <p>User role: {user?.role || 'Unknown'}</p>
+              <p>Can manage categories: {hasRole(['Admin', 'Manager']) ? 'Yes' : 'No'}</p>
+            </div>
+            
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-2 border">Name</th>
+                      <th className="px-4 py-2 border">Description</th>
+                      <th className="px-4 py-2 border">Products</th>
+                      <th className="px-4 py-2 border">Created</th>
                       {hasRole(['Admin', 'Manager']) && (
-                        <td className="px-4 py-2 border">
-                          <button
-                            onClick={() => handleEditCategory(category)}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded mr-2"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCategory(category.id)}
-                            className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
-                          >
-                            Delete
-                          </button>
-                        </td>
+                        <th className="px-4 py-2 border">Actions</th>
                       )}
                     </tr>
-                  ))}
-                  {categories.length === 0 && (
-                    <tr>
-                      <td colSpan="5" className="px-4 py-2 text-center">No categories found</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-          
-          {/* Add Category Modal */}
-          {showAddModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">Add New Category</h2>
-                <form onSubmit={handleSubmitAdd}>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded"
-                      required
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Description</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded"
-                      rows="3"
-                    ></textarea>
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddModal(false)}
-                      className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded mr-2"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                    >
-                      Add Category
-                    </button>
-                  </div>
-                </form>
+                  </thead>
+                  <tbody>
+                    {categories.map(category => (
+                      <tr key={category.id}>
+                        <td className="px-4 py-2 border">{category.name}</td>
+                        <td className="px-4 py-2 border">{category.description}</td>
+                        <td className="px-4 py-2 border text-center">{category.productCount}</td>
+                        <td className="px-4 py-2 border">{new Date(category.createdAt).toLocaleDateString()}</td>
+                        {hasRole(['Admin', 'Manager']) && (
+                          <td className="px-4 py-2 border">
+                            <button
+                              onClick={() => handleEditCategory(category)}
+                              className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded mr-2"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCategory(category.id)}
+                              className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                    {categories.length === 0 && (
+                      <tr>
+                        <td colSpan="5" className="px-4 py-2 text-center">No categories found</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-            </div>
-          )}
-          
-          {/* Edit Category Modal */}
-          {showEditModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">Edit Category</h2>
-                <form onSubmit={handleSubmitEdit}>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded"
-                      required
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Description</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded"
-                      rows="3"
-                    ></textarea>
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setShowEditModal(false)}
-                      className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded mr-2"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                    >
-                      Update Category
-                    </button>
-                  </div>
-                </form>
+            )}
+            
+            {/* Add Category Modal */}
+            {showAddModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                  <h2 className="text-xl font-bold mb-4">Add New Category</h2>
+                  <form onSubmit={handleSubmitAdd}>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2">Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border rounded"
+                        required
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2">Description</label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border rounded"
+                        rows="3"
+                      ></textarea>
+                    </div>
+                    <div className="flex justify-end mt-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          console.log('Cancel button clicked');
+                          setShowAddModal(false);
+                        }}
+                        className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded mr-2"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                      >
+                        Add Category
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+            
+            {/* Edit Category Modal */}
+            {showEditModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                  <h2 className="text-xl font-bold mb-4">Edit Category</h2>
+                  <form onSubmit={handleSubmitEdit}>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2">Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border rounded"
+                        required
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2">Description</label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border rounded"
+                        rows="3"
+                      ></textarea>
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setShowEditModal(false)}
+                        className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded mr-2"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                      >
+                        Update Category
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 } 

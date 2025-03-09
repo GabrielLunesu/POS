@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { productService, categoryService } from '@/services/api';
 import toast from 'react-hot-toast';
 
@@ -185,337 +186,345 @@ export default function ProductsPage() {
   
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-white">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Product Management</h1>
-            {hasRole(['Admin', 'Manager']) ? (
-              <button
-                onClick={handleAddProduct}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-              >
-                Add New Product
-              </button>
-            ) : (
-              <p className="text-sm text-gray-500">Admin or Manager role required to add products</p>
-            )}
-          </div>
-          
-          {/* Debug info */}
-          <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
-            <p>Modal state: {showAddModal ? 'Open' : 'Closed'}</p>
-            <p>User role: {user?.role || 'Unknown'}</p>
-            <p>Can manage products: {hasRole(['Admin', 'Manager']) ? 'Yes' : 'No'}</p>
-          </div>
-          
-          {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <DashboardLayout>
+        <div className="min-h-screen bg-white">
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Product Management</h1>
+              {hasRole(['Admin', 'Manager']) ? (
+                <button
+                  onClick={() => {
+                    console.log('Add Product button clicked');
+                    handleAddProduct();
+                  }}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                >
+                  Add New Product
+                </button>
+              ) : (
+                <p className="text-sm text-gray-500">Admin or Manager role required to add products</p>
+              )}
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border border-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2 border">Name</th>
-                    <th className="px-4 py-2 border">Category</th>
-                    <th className="px-4 py-2 border">Price</th>
-                    <th className="px-4 py-2 border">Cost</th>
-                    <th className="px-4 py-2 border">Quantity</th>
-                    {hasRole(['Admin', 'Manager']) && (
-                      <th className="px-4 py-2 border">Actions</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map(product => (
-                    <tr key={product.id}>
-                      <td className="px-4 py-2 border">{product.name}</td>
-                      <td className="px-4 py-2 border">{product.categoryName || 'Uncategorized'}</td>
-                      <td className="px-4 py-2 border">${product.price.toFixed(2)}</td>
-                      <td className="px-4 py-2 border">${product.cost.toFixed(2)}</td>
-                      <td className="px-4 py-2 border">{product.quantity}</td>
+            
+            {/* Debug info */}
+            <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+              <p>Modal state: {showAddModal ? 'Open' : 'Closed'}</p>
+              <p>User role: {user?.role || 'Unknown'}</p>
+              <p>Can manage products: {hasRole(['Admin', 'Manager']) ? 'Yes' : 'No'}</p>
+            </div>
+            
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-2 border">Name</th>
+                      <th className="px-4 py-2 border">Category</th>
+                      <th className="px-4 py-2 border">Price</th>
+                      <th className="px-4 py-2 border">Cost</th>
+                      <th className="px-4 py-2 border">Quantity</th>
                       {hasRole(['Admin', 'Manager']) && (
-                        <td className="px-4 py-2 border">
-                          <button
-                            onClick={() => handleEditProduct(product)}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded mr-2"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProduct(product.id)}
-                            className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
-                          >
-                            Delete
-                          </button>
-                        </td>
+                        <th className="px-4 py-2 border">Actions</th>
                       )}
                     </tr>
-                  ))}
-                  {products.length === 0 && (
-                    <tr>
-                      <td colSpan="6" className="px-4 py-2 text-center">No products found</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-          
-          {/* Add Product Modal */}
-          {showAddModal ? (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">Add New Product</h2>
-                <form onSubmit={handleSubmitAdd}>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded"
-                      required
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Description</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded"
-                      rows="3"
-                    ></textarea>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-gray-700 mb-2">Price</label>
-                      <input
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border rounded"
-                        step="0.01"
-                        min="0.01"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-gray-700 mb-2">Cost</label>
-                      <input
-                        type="number"
-                        name="cost"
-                        value={formData.cost}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border rounded"
-                        step="0.01"
-                        min="0.01"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-gray-700 mb-2">Quantity</label>
-                      <input
-                        type="number"
-                        name="quantity"
-                        value={formData.quantity}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border rounded"
-                        min="0"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-gray-700 mb-2">Barcode</label>
+                  </thead>
+                  <tbody>
+                    {products.map(product => (
+                      <tr key={product.id}>
+                        <td className="px-4 py-2 border">{product.name}</td>
+                        <td className="px-4 py-2 border">{product.categoryName || 'Uncategorized'}</td>
+                        <td className="px-4 py-2 border">${product.price.toFixed(2)}</td>
+                        <td className="px-4 py-2 border">${product.cost.toFixed(2)}</td>
+                        <td className="px-4 py-2 border">{product.quantity}</td>
+                        {hasRole(['Admin', 'Manager']) && (
+                          <td className="px-4 py-2 border">
+                            <button
+                              onClick={() => handleEditProduct(product)}
+                              className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded mr-2"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(product.id)}
+                              className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                    {products.length === 0 && (
+                      <tr>
+                        <td colSpan="6" className="px-4 py-2 text-center">No products found</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            
+            {/* Add Product Modal */}
+            {showAddModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                  <h2 className="text-xl font-bold mb-4">Add New Product</h2>
+                  <form onSubmit={handleSubmitAdd}>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2">Name</label>
                       <input
                         type="text"
-                        name="barcode"
-                        value={formData.barcode}
+                        name="name"
+                        value={formData.name}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border rounded"
-                      />
-                    </div>
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Category</label>
-                    <select
-                      name="categoryId"
-                      value={formData.categoryId}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded"
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map(category => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Image URL</label>
-                    <input
-                      type="text"
-                      name="imageUrl"
-                      value={formData.imageUrl}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded"
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
-                  <div className="flex justify-end mt-6">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddModal(false)}
-                      className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded mr-2"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                    >
-                      Add Product
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          ) : null}
-          
-          {/* Edit Product Modal */}
-          {showEditModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">Edit Product</h2>
-                <form onSubmit={handleSubmitEdit}>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded"
-                      required
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Description</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded"
-                      rows="3"
-                    ></textarea>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-gray-700 mb-2">Price</label>
-                      <input
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border rounded"
-                        step="0.01"
-                        min="0.01"
                         required
                       />
                     </div>
-                    <div>
-                      <label className="block text-gray-700 mb-2">Cost</label>
-                      <input
-                        type="number"
-                        name="cost"
-                        value={formData.cost}
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2">Description</label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border rounded"
-                        step="0.01"
-                        min="0.01"
-                        required
-                      />
+                        rows="3"
+                      ></textarea>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-gray-700 mb-2">Quantity</label>
-                      <input
-                        type="number"
-                        name="quantity"
-                        value={formData.quantity}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-gray-700 mb-2">Price</label>
+                        <input
+                          type="number"
+                          name="price"
+                          value={formData.price}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border rounded"
+                          step="0.01"
+                          min="0.01"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 mb-2">Cost</label>
+                        <input
+                          type="number"
+                          name="cost"
+                          value={formData.cost}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border rounded"
+                          step="0.01"
+                          min="0.01"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-gray-700 mb-2">Quantity</label>
+                        <input
+                          type="number"
+                          name="quantity"
+                          value={formData.quantity}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border rounded"
+                          min="0"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 mb-2">Barcode</label>
+                        <input
+                          type="text"
+                          name="barcode"
+                          value={formData.barcode}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border rounded"
+                        />
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2">Category</label>
+                      <select
+                        name="categoryId"
+                        value={formData.categoryId}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border rounded"
-                        min="0"
-                        required
-                      />
+                      >
+                        <option value="">Select Category</option>
+                        {categories.map(category => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    <div>
-                      <label className="block text-gray-700 mb-2">Barcode</label>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2">Image URL</label>
                       <input
                         type="text"
-                        name="barcode"
-                        value={formData.barcode}
+                        name="imageUrl"
+                        value={formData.imageUrl}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border rounded"
+                        placeholder="https://example.com/image.jpg"
                       />
                     </div>
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Category</label>
-                    <select
-                      name="categoryId"
-                      value={formData.categoryId}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded"
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map(category => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Image URL</label>
-                    <input
-                      type="text"
-                      name="imageUrl"
-                      value={formData.imageUrl}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border rounded"
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setShowEditModal(false)}
-                      className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded mr-2"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                    >
-                      Update Product
-                    </button>
-                  </div>
-                </form>
+                    <div className="flex justify-end mt-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          console.log('Cancel button clicked');
+                          setShowAddModal(false);
+                        }}
+                        className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded mr-2"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                      >
+                        Add Product
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+            
+            {/* Edit Product Modal */}
+            {showEditModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                  <h2 className="text-xl font-bold mb-4">Edit Product</h2>
+                  <form onSubmit={handleSubmitEdit}>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2">Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border rounded"
+                        required
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2">Description</label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border rounded"
+                        rows="3"
+                      ></textarea>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-gray-700 mb-2">Price</label>
+                        <input
+                          type="number"
+                          name="price"
+                          value={formData.price}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border rounded"
+                          step="0.01"
+                          min="0.01"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 mb-2">Cost</label>
+                        <input
+                          type="number"
+                          name="cost"
+                          value={formData.cost}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border rounded"
+                          step="0.01"
+                          min="0.01"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-gray-700 mb-2">Quantity</label>
+                        <input
+                          type="number"
+                          name="quantity"
+                          value={formData.quantity}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border rounded"
+                          min="0"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 mb-2">Barcode</label>
+                        <input
+                          type="text"
+                          name="barcode"
+                          value={formData.barcode}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border rounded"
+                        />
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2">Category</label>
+                      <select
+                        name="categoryId"
+                        value={formData.categoryId}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border rounded"
+                      >
+                        <option value="">Select Category</option>
+                        {categories.map(category => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-2">Image URL</label>
+                      <input
+                        type="text"
+                        name="imageUrl"
+                        value={formData.imageUrl}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border rounded"
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setShowEditModal(false)}
+                        className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded mr-2"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                      >
+                        Update Product
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 } 

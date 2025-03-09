@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
  * Provides navigation links and user menu for authenticated users
  */
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, hasRole } = useAuth();
   const pathname = usePathname();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
@@ -119,16 +119,18 @@ export default function Navbar() {
                 Test Modal
               </Link>
               
-              <Link 
-                href="/users" 
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                  isActive('/users') 
-                    ? 'border-blue-500 text-gray-900' 
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                }`}
-              >
-                Users
-              </Link>
+              {hasRole(['Admin']) && (
+                <Link 
+                  href="/users" 
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                    isActive('/users') 
+                      ? 'border-blue-500 text-gray-900' 
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  }`}
+                >
+                  Users
+                </Link>
+              )}
             </div>
           </div>
           
@@ -300,16 +302,18 @@ export default function Navbar() {
             Test Modal
           </Link>
           
-          <Link
-            href="/users"
-            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-              isActive('/users')
-                ? 'border-blue-500 text-blue-700 bg-blue-50'
-                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
-            }`}
-          >
-            Users
-          </Link>
+          {hasRole(['Admin']) && (
+            <Link
+              href="/users"
+              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                isActive('/users')
+                  ? 'border-blue-500 text-blue-700 bg-blue-50'
+                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+              }`}
+            >
+              Users
+            </Link>
+          )}
         </div>
         
         <div className="pt-4 pb-3 border-t border-gray-200">
