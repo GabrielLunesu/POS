@@ -115,3 +115,14 @@ The dashboard provides an overview of:
 - **Database**: SQL Server
 - **Authentication**: JWT (JSON Web Tokens)
 
+
+
+class diagram x
+usecase diagram x
+sequence diagram x
+
+requirements x
+use case beschrijving x 
+test rapport x
+
+week 9 of 10 inleveren casus

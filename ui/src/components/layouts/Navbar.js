@@ -107,7 +107,7 @@ export default function Navbar() {
               >
                 Debug
               </Link>
-              
+{/*               
               <Link 
                 href="/test-modal" 
                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
@@ -117,7 +117,7 @@ export default function Navbar() {
                 }`}
               >
                 Test Modal
-              </Link>
+              </Link> */}
               
               {hasRole(['Admin']) && (
                 <Link 

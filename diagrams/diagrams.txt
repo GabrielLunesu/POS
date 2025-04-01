@@ -1,0 +1,123 @@
+class:
+classDiagram
+    class User {
+        +int Id
+        +string Username
+        +string Email
+        +byte[] PasswordHash
+        +byte[] PasswordSalt
+        +string Role
+        +DateTime CreatedAt
+        +DateTime? LastLogin
+        +bool IsActive
+    }
+
+    class Product {
+        +int Id
+        +string Name
+        +string Description
+        +decimal Price
+        +int Quantity
+        +string Barcode
+        +int? CategoryId
+        +string ImageUrl
+        +decimal Cost
+        +bool IsActive
+        +DateTime CreatedAt
+        +DateTime? UpdatedAt
+    }
+
+    class Category {
+        +int Id
+        +string Name
+        +string Description
+        +bool IsActive
+        +DateTime CreatedAt
+    }
+
+    class Sale {
+        +int Id
+        +DateTime SaleDate
+        +decimal Total
+        +decimal Tax
+        +decimal Discount
+        +decimal GrandTotal
+        +string PaymentMethod
+        +string PaymentReference
+        +int? UserId
+        +string Status
+        +string Notes
+    }
+
+    class SaleItem {
+        +int Id
+        +int SaleId
+        +int ProductId
+        +int Quantity
+        +decimal UnitPrice
+        +decimal Discount
+        +decimal Total
+    }
+
+    Category "1" --o "*" Product : bevat
+    Product "1" --o "*" SaleItem : heeft
+    Sale "1" --* "*" SaleItem : bevat
+    User "1" -- "*" Sale : verwerkt
+
+
+use case:
+
+graph TD
+    %% Actors
+    Employee[Medewerker]
+    Manager[Manager]
+    Admin[Administrator]
+    
+    %% Use Cases
+    UC1[Inloggen]
+    UC2[Producten bekijken]
+    UC3[Producten zoeken]
+    UC4[Producten toevoegen aan verkoop]
+    UC5[Verkoop afronden]
+    UC6[Verkoop annuleren]
+    UC7[Producten beheren]
+    UC8[Categorieën beheren]
+    UC9[Verkooprapporten bekijken]
+    UC10[Gebruikers beheren]
+    UC11[Systeem configureren]
+    
+    %% Employee relationships
+    Employee --> UC1
+    Employee --> UC2
+    Employee --> UC3
+    Employee --> UC4
+    Employee --> UC5
+    
+    %% Manager relationships
+    Manager --> UC1
+    Manager --> UC2
+    Manager --> UC3
+    Manager --> UC4
+    Manager --> UC5
+    Manager --> UC6
+    Manager --> UC7
+    Manager --> UC8
+    Manager --> UC9
+    
+    %% Admin relationships
+    Admin --> UC1
+    Admin --> UC2
+    Admin --> UC3
+    Admin --> UC4
+    Admin --> UC5
+    Admin --> UC6
+    Admin --> UC7
+    Admin --> UC8
+    Admin --> UC9
+    Admin --> UC10
+    Admin --> UC11
+    
+    %% Include/Extend relationships
+    UC4 -.-> UC2
+    UC5 -.-> UC4
+    UC6 -.-> UC5
