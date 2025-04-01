@@ -8,21 +8,34 @@ using server.Models;
 
 namespace server.Controllers
 {
+    /// <summary>
+    /// Controller responsible for managing user accounts in the POS system.
+    /// All endpoints require Admin role authentication as they handle sensitive user operations.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = "Admin")]
     public class UsersController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly JwtTokenService _tokenService;
+        private readonly ApplicationDbContext _context; // Database context for user operations
+        private readonly JwtTokenService _tokenService; // Service for password hashing and token operations
 
+        /// <summary>
+        /// Constructor that initializes the controller with required dependencies via dependency injection.
+        /// </summary>
+        /// <param name="context">Database context for accessing the users table</param>
+        /// <param name="tokenService">Service for password-related operations</param>
         public UsersController(ApplicationDbContext context, JwtTokenService tokenService)
         {
             _context = context;
             _tokenService = tokenService;
         }
 
-        // GET: api/Users
+        /// <summary>
+        /// Retrieves all users from the database.
+        /// Used in admin panel to display and manage all user accounts.
+        /// </summary>
+        /// <returns>List of all users with sensitive information removed</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetUsers()
         {
@@ -33,7 +46,7 @@ namespace server.Controllers
                     Username = u.Username,
                     Email = u.Email,
                     Role = u.Role,
-                    // Don't include token in the response
+                    // Don't include token in the response for security reasons
                     Token = string.Empty
                 })
                 .ToListAsync();
@@ -41,7 +54,12 @@ namespace server.Controllers
             return Ok(users);
         }
 
-        // GET: api/Users/5
+        /// <summary>
+        /// Retrieves a specific user by their unique ID.
+        /// Used when viewing or editing specific user details in the admin panel.
+        /// </summary>
+        /// <param name="id">The unique identifier of the user to retrieve</param>
+        /// <returns>User information if found, 404 NotFound if user doesn't exist</returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<UserResponseDto>> GetUser(int id)
         {
@@ -58,23 +76,30 @@ namespace server.Controllers
                 Username = user.Username,
                 Email = user.Email,
                 Role = user.Role,
-                // Don't include token in the response
+                // Don't include token in the response for security reasons
                 Token = string.Empty
             };
 
             return Ok(userDto);
         }
 
-        // POST: api/Users
+        /// <summary>
+        /// Creates a new user account with provided information.
+        /// Used when adding new employees or administrators to the system.
+        /// </summary>
+        /// <param name="request">User registration information containing username, email, password, etc.</param>
+        /// <returns>Newly created user information with 201 Created status</returns>
         [HttpPost]
         public async Task<ActionResult<UserResponseDto>> CreateUser(UserRegisterDto request)
         {
+            // Validate uniqueness of username and email to prevent duplicates
             if (await _context.Users.AnyAsync(u => u.Username == request.Username))
                 return BadRequest("Username already exists");
 
             if (await _context.Users.AnyAsync(u => u.Email == request.Email))
                 return BadRequest("Email already exists");
 
+            // Hash the password for secure storage - never store plaintext passwords
             _tokenService.CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
             var user = new User
@@ -97,30 +122,42 @@ namespace server.Controllers
                 Username = user.Username,
                 Email = user.Email,
                 Role = user.Role,
-                // Don't include token in the response
+                // Don't include token in the response for security reasons
                 Token = string.Empty
             };
 
+            // Return 201 Created with location header and user information
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, userDto);
         }
 
-        // PUT: api/Users/5
+        /// <summary>
+        /// Updates an existing user by their ID with provided information.
+        /// The method uses ID in the route (not in the request body) for several important reasons:
+        /// 1. Follows REST principles where resource identification is in the URL path
+        /// 2. Prevents ID mismatch between URL and request body (security/consistency)
+        /// 3. Allows partial updates since not all fields need to be included in UserUpdateDto
+        /// 4. Makes the API more intuitive as the ID clearly identifies which user to update
+        /// </summary>
+        /// <param name="id">The unique identifier of the user to update</param>
+        /// <param name="userDto">New user information to apply (username, email, etc.)</param>
+        /// <returns>204 NoContent if successful, 404 NotFound if user doesn't exist</returns>
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, UserUpdateDto userDto)
         {
+            // Find the user to update by ID
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
 
-            // Update user properties
+            // Update user properties with new values from the DTO
             user.Username = userDto.Username;
             user.Email = userDto.Email;
             user.Role = userDto.Role;
             user.IsActive = userDto.IsActive;
 
-            // Update password if provided
+            // Only update password if a new one is provided (optional field)
             if (!string.IsNullOrEmpty(userDto.Password))
             {
                 _tokenService.CreatePasswordHash(userDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
@@ -134,6 +171,7 @@ namespace server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
+                // Handle case where the user was deleted by another operation
                 if (!UserExists(id))
                 {
                     return NotFound();
@@ -144,10 +182,16 @@ namespace server.Controllers
                 }
             }
 
+            // Return 204 No Content to indicate successful update without returning data
             return NoContent();
         }
 
-        // DELETE: api/Users/5
+        /// <summary>
+        /// Soft deletes a user by marking them as inactive rather than removing from database.
+        /// This preserves historical data and relationships while preventing the user from logging in.
+        /// </summary>
+        /// <param name="id">The unique identifier of the user to delete</param>
+        /// <returns>204 NoContent if successful, 404 NotFound if user doesn't exist</returns>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -157,7 +201,7 @@ namespace server.Controllers
                 return NotFound();
             }
 
-            // Don't allow deleting the last admin
+            // Safety check: Prevent deleting the last admin to ensure admin access is never lost
             if (user.Role == "Admin")
             {
                 var adminCount = await _context.Users.CountAsync(u => u.Role == "Admin");
@@ -167,13 +211,20 @@ namespace server.Controllers
                 }
             }
 
-            // Soft delete - just deactivate the user
+            // Soft delete - just deactivate the user instead of removing from database
+            // This preserves data integrity and history while preventing login
             user.IsActive = false;
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
+        /// <summary>
+        /// Helper method to check if a user with the specified ID exists in the database.
+        /// Used internally to validate existence before performing operations.
+        /// </summary>
+        /// <param name="id">The unique identifier to check</param>
+        /// <returns>True if user exists, false otherwise</returns>
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.Id == id);

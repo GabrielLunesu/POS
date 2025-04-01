@@ -6,16 +6,23 @@ using server.Auth;
 using server.Data;
 using System.Text;
 
+// Create a new WebApplication builder instance
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
+//==============================================
+// SERVICES CONFIGURATION
+//==============================================
+
+// Register controllers for handling API endpoints
 builder.Services.AddControllers();
 
-// Configure database
+// Configure database connection using Entity Framework
+// The connection string is retrieved from appsettings.json
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configure JWT authentication
+// Configure JWT authentication for secure API access
+// JWT tokens are used to authenticate users after login
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -23,19 +30,21 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    // Configure token validation parameters
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuerSigningKey = true,
+        ValidateIssuerSigningKey = true, // Verify token is signed with the correct key
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
-            .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value!)),
-        ValidateIssuer = false,
-        ValidateAudience = false,
+            .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value!)), // Get secret key from config
+        ValidateIssuer = false, // Not validating issuer for simplicity
+        ValidateAudience = false, // Not validating audience for simplicity
         // Don't use custom SignatureValidator as it can cause issues
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
+        ValidateLifetime = true, // Check if token is expired
+        ClockSkew = TimeSpan.Zero // No time skew allowed (token expires exactly at expiration time)
     };
     
     // Add event handlers for debugging token validation issues
+    // These help troubleshoot authentication problems during development
     options.Events = new JwtBearerEvents
     {
         OnAuthenticationFailed = context =>
@@ -56,10 +65,12 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Register JwtTokenService
+// Register JwtTokenService for dependency injection
+// This service handles token generation and password operations
 builder.Services.AddScoped<JwtTokenService>();
 
-// Configure CORS
+// Configure CORS (Cross-Origin Resource Sharing) to allow frontend access
+// In a production environment, this should be restricted to specific origins
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
@@ -68,13 +79,14 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader());
 });
 
-// Configure Swagger
+// Configure Swagger for API documentation and testing
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "POS API", Version = "v1" });
     
     // Configure Swagger to use JWT Authentication
+    // This allows testing secured endpoints directly from Swagger UI
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -100,25 +112,43 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+//==============================================
+// APPLICATION PIPELINE CONFIGURATION
+//==============================================
+
+// Build the application
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+// Configure the HTTP request pipeline with middleware
+// The order of middleware is important!
 if (app.Environment.IsDevelopment())
 {
+    // Enable Swagger UI for API testing in development environment
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// Redirect HTTP requests to HTTPS for security
 app.UseHttpsRedirection();
 
+// Enable CORS with the "AllowAll" policy
 app.UseCors("AllowAll");
 
+// Add authentication middleware to validate JWT tokens
 app.UseAuthentication();
+
+// Add authorization middleware to check user permissions
 app.UseAuthorization();
 
+// Map controller endpoints to route requests
 app.MapControllers();
 
-// Seed admin user
+//==============================================
+// APPLICATION INITIALIZATION
+//==============================================
+
+// Seed admin user to ensure there's always an admin account
+// This runs when the application starts up
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -133,4 +163,5 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// Start the application
 app.Run();
